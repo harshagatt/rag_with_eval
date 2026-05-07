@@ -15,15 +15,38 @@ Stability Enhancements: Configured with extended timeouts and concurrency limits
 
 Debug-Ready: Automatically exports evaluation results to evaluation_debug.csv for row-by-row analysis.
 
-🛠️ Technical Stack
+Core Orchestration & Inference
+Framework: LangChain (LCEL) provides the underlying logic for document loading, chunking, and chain construction.
 
-LLM (RAG & Judge): Ollama (llama3.1)
+Inference Engine: Ollama serves as the local provider for both LLMs and embedding models, ensuring that sensitive data—such as internal financial statements—remains offline.
 
-Embeddings: Ollama (nomic-embed-text)
+Environment: MacOS (Homebrew) setup allows for native integration with Apple Silicon (M-series) GPUs for efficient local inference.
 
-Vector Database: Qdrant
+AI Model Selection
+The Judge/Inference Model: Llama 3.1 (8B). While the original Llama 3 (8B) is capable, Llama 3.1 is preferred for evaluation tasks due to its superior instruction-following and tool-use capabilities. This is critical for Ragas evaluations, where the model must extract claims and output strict JSON without conversational "filler" that breaks parsers.
 
-Framework: LangChain & Ragas
+The Embedding Model: nomic-embed-text. This model is highly efficient for local use, offering a 8192-token context window which is essential for capturing long-form financial tables and balance sheets.
+
+Vector Infrastructure & Search Strategy
+Vector Database: Qdrant. Chosen for its high performance and native support for hybrid search.
+
+Search Strategy: Hybrid Search (Dense + Sparse). In financial domains, semantic vector search is used to understand context, while keyword search (BM25) is utilized to lock onto exact fiscal dates or specific numerical values (e.g., "March 29, 2025").
+
+Hyperparameters: Temperature = 0. Mandatory for both retrieval and evaluation to ensure deterministic, reproducible results and to eliminate creative hallucinations during the auditing phase.
+
+Evaluation Suite (Ragas)
+Framework: Ragas 0.2.x.
+
+The "Golden" Dataset: ground_truth.json. This serves as the benchmark against which the RAG pipeline is measured. It contains human-verified question-answer pairs derived from source documents.
+
+Key Metrics:
+
+Faithfulness: Measures if the answer is derived solely from the retrieved context.
+
+Answer Relevancy: Measures how well the response addresses the prompt.
+
+Context Precision: Evaluates the quality of the retriever’s ranking.
+
 
 Data Source: Apple Inc. Condensed Consolidated Statements (Unaudited) - You can choose any files with lots of tables so that you can
 test the effectiveness of the PDF parsing
